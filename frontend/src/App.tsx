@@ -1,6 +1,7 @@
+import React from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
-const App = () => {
+const App: React.FC = () => {
   const { loginWithRedirect, logout, isAuthenticated, user, getAccessTokenSilently } = useAuth0();
 
   // 保護されたリソースへのアクセス
@@ -18,10 +19,18 @@ const App = () => {
         credentials: 'include',
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
       const data = await response.json();
       console.log('Protected resource:', data);
-    } catch (error) {
-      console.error('Error accessing protected resource:', error);
+    } catch (error: any) {
+      console.error('Error accessing protected resource:', error.message);
+      if (error.error === 'login_required' || error.error === 'consent_required') {
+        console.log('Re-authenticating...');
+        loginWithRedirect(); // 再認証
+      }
     }
   };
 
@@ -31,7 +40,7 @@ const App = () => {
         <button onClick={() => loginWithRedirect()}>Log in</button>
       ) : (
         <div>
-          <h2>Welcome, {user.name}</h2>
+          <h2>Welcome, {user?.name}</h2>
           <button onClick={handleAccessProtectedResource}>Access Protected Resource</button>
           <button onClick={() => logout({ returnTo: window.location.origin })}>Log out</button>
         </div>
