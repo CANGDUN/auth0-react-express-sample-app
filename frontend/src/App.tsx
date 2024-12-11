@@ -9,7 +9,8 @@ const App = () => {
       const accessToken = await getAccessTokenSilently();
       console.log('Access Token:', accessToken);
 
-      const response = await fetch('http://localhost:4000/protected', {
+      const apiBase = import.meta.env.VITE_APP_API_BASE_URL!;
+      const response = await fetch(`${apiBase}/protected`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${accessToken}`,
