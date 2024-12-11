@@ -11,7 +11,7 @@ const app = express();
 // CORS 設定
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.ALLOWED_ORIGIN,
     credentials: true,
   })
 );
