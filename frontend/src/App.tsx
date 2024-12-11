@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useAuth0 } from '@auth0/auth0-react';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const { loginWithRedirect, logout, isAuthenticated, user, getAccessTokenSilently } = useAuth0();
+
+  // 保護されたリソースへのアクセス
+  const handleAccessProtectedResource = async () => {
+    try {
+      const accessToken = await getAccessTokenSilently();
+      console.log('Access Token:', accessToken);
+
+      const response = await fetch('http://localhost:4000/protected', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Protected resource:', data);
+    } catch (error) {
+      console.error('Error accessing protected resource:', error);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div>
+      {!isAuthenticated ? (
+        <button onClick={() => loginWithRedirect()}>Log in</button>
+      ) : (
+        <div>
+          <h2>Welcome, {user.name}</h2>
+          <button onClick={handleAccessProtectedResource}>Access Protected Resource</button>
+          <button onClick={() => logout({ returnTo: window.location.origin })}>Log out</button>
+        </div>
+      )}
+    </div>
+  );
+};
 
-export default App
+export default App;
